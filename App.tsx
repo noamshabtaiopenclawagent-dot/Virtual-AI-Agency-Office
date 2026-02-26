@@ -8,6 +8,7 @@ import Desk from './components/Desk';
 import OfficeLog from './components/OfficeLog';
 import { ResearchHub } from './components/ResearchHub';
 import { SecurityCenter } from './components/SecurityCenter';
+import CommandCenter from './components/CommandCenter';
 import { getGeminiResponse } from './services/geminiService';
 import { supabase } from './services/supabaseService';
 import { fetchOfficeAgents, fetchOfficeTasks, fetchDailyCost, fetchOfficeGoals, fetchProposals, fetchCronJobs, fetchOfficeMemories, fetchOfficeLogs, fetchCapabilities, fetchModels, fetchSystemHealth, fetchSecurityIssues, fetchArtifacts, subscribeToTasks, subscribeToAgents } from './services/opiDataService';
@@ -32,7 +33,8 @@ import {
   Search,
   ShieldAlert,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bot
 } from 'lucide-react';
 
 const ROOM_THEMES: Record<string, string> = {
@@ -559,6 +561,7 @@ const App: React.FC = () => {
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">
            {[
              { id: 'Dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
+             { id: 'CommandCenter', label: 'מרכז פקודות', icon: Bot },
              { id: 'Security', label: 'אבטחת סייבר', icon: ShieldAlert },
              { id: 'Research', label: 'מרכז מחקר', icon: BrainCircuit },
              { id: 'Physical', label: 'משרד ויזואלי', icon: Building2 },
@@ -1011,6 +1014,13 @@ const App: React.FC = () => {
                research={state.research}
                agents={state.agents}
              />
+           )}
+
+           {/* COMMAND CENTER */}
+           {state.activeTab === 'CommandCenter' && (
+             <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700">
+               <CommandCenter />
+             </div>
            )}
 
            {/* 4.6 SECURITY CENTER */}
