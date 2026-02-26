@@ -379,30 +379,65 @@ export async function fetchResearch(): Promise<any[]> {
 
 export async function fetchSecurityIssues(): Promise<any[]> {
   try {
-    // Map from notes with security-related tags or content
-    const { data, error } = await supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(20);
+    // Fetch from activity_log filtered by OPI-SECURITY source
+    const { data, error } = await supabase
+      .from('activity_log')
+      .select('*')
+      .eq('source', 'OPI-SECURITY')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
     if (error) {
       console.error('Error fetching security issues:', error);
       return [];
     }
     
-    // Filter for security-related notes or create default structure
-    return (data || []).map(n => {
-      const content = (n.content || '').toLowerCase();
-      const isSecurity = content.includes('security') || content.includes('vulnerability') || content.includes('breach') || content.includes('alert') || n.tags?.some(t => t.toLowerCase().includes('security'));
+    // Transform activity_log entries to security issue format
+    return (data || []).map(log => {
+      const message = log.message || '';
+      const isCritical = message.includes('CRITICAL') || message.includes('ERROR');
+      const isWarning = message.includes('WARNING');
       
       return {
-        id: String(n.id),
-        title: n.title || 'Security Note',
-        description: n.content || '',
-        severity: isSecurity ? 'HIGH' : 'LOW',
-        status: 'CLOSED',
-        createdAt: new Date(n.created_at).getTime(),
-        affectedSystems: n.tags || [],
+        id: String(log.id),
+        title: message.substring(0, 60) || 'Security Event',
+        description: message,
+        severity: isCritical ? 'CRITICAL' : isWarning ? 'HIGH' : 'LOW',
+        status: isCritical ? 'OPEN' : 'CLOSED',
+        createdAt: new Date(log.created_at).getTime(),
+        affectedSystems: ['OPI-SECURITY'],
+        detectedBy: 'OPI-SECURITY',
       };
     });
   } catch (e) {
     console.error('Exception fetching security issues:', e);
+    return [];
+  }
+}
+
+// NEW: Fetch market data from market_data_cache table
+export async function fetchMarketData(): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('market_data_cache')
+      .select('*')
+      .order('fetched_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching market data:', error);
+      return [];
+    }
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      ticker: item.ticker,
+      data_type: item.data_type,
+      data: item.data,
+      fetched_at: item.fetched_at,
+      expires_at: item.expires_at,
+    }));
+  } catch (e) {
+    console.error('Exception fetching market data:', e);
     return [];
   }
 }

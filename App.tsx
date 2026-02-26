@@ -11,7 +11,7 @@ import { SecurityCenter } from './components/SecurityCenter';
 import CommandCenter from './components/CommandCenter';
 import { getGeminiResponse } from './services/geminiService';
 import { supabase } from './services/supabaseService';
-import { fetchOfficeAgents, fetchOfficeTasks, fetchDailyCost, fetchOfficeGoals, fetchProposals, fetchCronJobs, fetchOfficeMemories, fetchOfficeLogs, fetchCapabilities, fetchModels, fetchSystemHealth, fetchSecurityIssues, fetchArtifacts, subscribeToTasks, subscribeToAgents } from './services/opiDataService';
+import { fetchOfficeAgents, fetchOfficeTasks, fetchDailyCost, fetchOfficeGoals, fetchProposals, fetchCronJobs, fetchOfficeMemories, fetchOfficeLogs, fetchCapabilities, fetchModels, fetchSystemHealth, fetchSecurityIssues, fetchArtifacts, fetchMarketData, subscribeToTasks, subscribeToAgents } from './services/opiDataService';
 import { fetchAllResearch, fetchResearchByCategory, RESEARCH_TABS } from './services/researchService';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from 'recharts';
 import { 
@@ -66,6 +66,7 @@ const App: React.FC = () => {
     proposals: [],
     research: [],
     securityIssues: [],
+    marketData: [],
     selectedAgentId: null,
     activeTab: 'Dashboard',
   });
@@ -218,7 +219,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchInitialState = async () => {
       try {
-        const [agents, tasks, goals, memories, logs, research, securityIssues, artifacts, cronJobs, proposals, capabilities, models, systemHealth, dailyCost] = await Promise.all([
+        const [agents, tasks, goals, memories, logs, research, securityIssues, marketData, artifacts, cronJobs, proposals, capabilities, models, systemHealth, dailyCost] = await Promise.all([
           fetchOfficeAgents(),
           fetchOfficeTasks(),
           fetchOfficeGoals(),
@@ -226,6 +227,7 @@ const App: React.FC = () => {
           fetchOfficeLogs(),
           fetchAllResearch(),
           fetchSecurityIssues(),
+          fetchMarketData(),
           fetchArtifacts(),
           fetchProposals(),
           fetchCronJobs(),
@@ -244,6 +246,7 @@ const App: React.FC = () => {
           logs: logs.length > 0 ? logs : prev.logs,
           research: research,
           securityIssues: securityIssues,
+          marketData: marketData,
           artifacts: artifacts,
           cronJobs: cronJobs,
           proposals: proposals,
