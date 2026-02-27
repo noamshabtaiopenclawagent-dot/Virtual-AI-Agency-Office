@@ -971,34 +971,34 @@ const App: React.FC = () => {
 
            {/* 3. ORG TREE */}
            {state.activeTab === 'OrgTree' && (
-              <div className="max-w-6xl mx-auto h-full flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-1000">
-                 <h2 className="text-white text-xl lg:text-3xl font-bold mb-10 lg:mb-20">Neural Organization Hierarchy</h2>
+              <div className="max-w-6xl mx-auto h-full flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-1000 overflow-x-auto px-4">
+                 <h2 className="text-white text-xl lg:text-3xl font-bold mb-6 lg:mb-12">Neural Organization Hierarchy</h2>
                  
                  {/* OPI - CEO */}
-                 <div className="flex flex-col items-center gap-20">
-                    <div className="flex flex-col items-center gap-4">
-                       <div className="w-24 h-24 rounded-3xl glass border-2 border-blue-500/40 p-1 shadow-[0_0_50px_rgba(59,130,246,0.2)]">
-                          <img src={state.agents.find(a => !a.parentId)?.avatar} className="w-full h-full rounded-2xl" />
+                 <div className="flex flex-col items-center gap-8 lg:gap-16">
+                    <div className="flex flex-col items-center gap-2 lg:gap-4">
+                       <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-3xl glass border-2 border-blue-500/40 p-1 shadow-[0_0_50px_rgba(59,130,246,0.2)]">
+                          <img src={state.agents.find(a => !a.parentId)?.avatar} className="w-full h-full rounded-xl lg:rounded-2xl" />
                        </div>
                        <div className="text-center">
-                          <div className="text-white font-black uppercase tracking-widest">{state.agents.find(a => !a.parentId)?.name}</div>
-                          <div className="text-[9px] text-blue-500 font-bold uppercase">{state.agents.find(a => !a.parentId)?.role}</div>
+                          <div className="text-white font-black uppercase tracking-widest text-sm lg:text-base">{state.agents.find(a => !a.parentId)?.name}</div>
+                          <div className="text-[8px] lg:text-[9px] text-blue-500 font-bold uppercase">{state.agents.find(a => !a.parentId)?.role}</div>
                        </div>
                     </div>
 
-                    <div className="flex gap-32 relative">
-                       {/* Connection Lines (Simplified) */}
-                       <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-px h-10 bg-white/10"></div>
-                       <div className="absolute -top-10 left-[20%] right-[20%] h-px bg-white/10"></div>
+                    {/* Connection Line */}
+                    <div className="w-px h-8 bg-white/20"></div>
 
+                    {/* Reports - Responsive Grid */}
+                    <div className="flex flex-wrap justify-center gap-4 lg:gap-12 px-2">
                        {state.agents.filter(a => a.parentId === state.agents.find(x => !x.parentId)?.id).map(agent => (
-                         <div key={agent.id} className="flex flex-col items-center gap-4">
-                            <div className="w-16 h-16 rounded-2xl glass border border-white/20 p-1">
-                               <img src={agent.avatar} className="w-full h-full rounded-xl" />
+                         <div key={agent.id} className="flex flex-col items-center gap-2 min-w-[60px]">
+                            <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl glass border border-white/20 p-1">
+                               <img src={agent.avatar} className="w-full h-full rounded-lg lg:rounded-xl" />
                             </div>
                             <div className="text-center">
-                               <div className="text-zinc-300 font-bold text-xs uppercase tracking-widest">{agent.name}</div>
-                               <div className="text-[8px] text-zinc-600 font-bold uppercase">{agent.role}</div>
+                               <div className="text-zinc-300 font-bold text-[10px] lg:text-xs uppercase tracking-widest">{agent.name}</div>
+                               <div className="text-[7px] lg:text-[8px] text-zinc-600 font-bold uppercase">{agent.role}</div>
                             </div>
                          </div>
                        ))}
