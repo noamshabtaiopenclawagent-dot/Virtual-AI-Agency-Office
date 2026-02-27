@@ -84,6 +84,7 @@ interface OPIAgent {
   home_position?: { x: number; y: number };
   trust_score?: number;
   expertise?: string[];
+  parent_id?: number;
   created_at: string;
 }
 
@@ -144,6 +145,7 @@ function mapOPIAgentToOffice(opiAgent: OPIAgent): OfficeAgent {
     trustScore: opiAgent.trust_score || 90,
     expertise: opiAgent.expertise || [],
     isFacingLeft: false,
+    parentId: opiAgent.parent_id ? String(opiAgent.parent_id) : undefined,
   };
 }
 

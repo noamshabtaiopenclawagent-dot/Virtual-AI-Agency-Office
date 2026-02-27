@@ -69,6 +69,7 @@ const App: React.FC = () => {
     marketData: [],
     capabilities: [],
     models: [],
+    cronJobs: [],
     selectedAgentId: null,
     activeTab: 'Dashboard',
   });
@@ -1058,7 +1059,7 @@ const App: React.FC = () => {
                          <div className="flex gap-12 text-right">
                             <div>
                                <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Interval</div>
-                               <div className="text-sm text-zinc-300 font-mono">{job.interval}s</div>
+                               <div className="text-sm text-zinc-300 font-mono">{job.interval || 3600}s</div>
                             </div>
                             <div>
                                <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Next Run</div>
