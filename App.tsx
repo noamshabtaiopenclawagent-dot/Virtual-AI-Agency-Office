@@ -774,11 +774,11 @@ const App: React.FC = () => {
                           <Activity size={60} />
                        </div>
                        <div className="flex justify-between items-start mb-2">
-                          <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">System Health</div>
-                          <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                          <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Mac CPU</div>
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                        </div>
-                       <div className="text-3xl font-black text-white mb-1">98%</div>
-                       <div className="text-[10px] text-zinc-600">All systems operational</div>
+                       <div className="text-3xl font-black text-white mb-1">{state.systemHealth?.macCpu || 'N/A'}%</div>
+                       <div className="text-[10px] text-zinc-600">Memory: {state.systemHealth?.macMemory || 'N/A'}% | Disk: {state.systemHealth?.macDisk || 'N/A'}%</div>
                     </button>
                  </div>
 

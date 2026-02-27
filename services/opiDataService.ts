@@ -514,6 +514,24 @@ export async function fetchSystemHealth(): Promise<any> {
     const { data: logs } = await supabase.from('activity_log').select('level, created_at').order('created_at', { ascending: false }).limit(20);
     const { data: tasks } = await supabase.from('tasks').select('status');
     
+    // Get real Mac stats from system_stats job
+    const { data: macStats } = await supabase
+      .from('cron_executions')
+      .select('logs, execution_time')
+      .eq('job_name', 'system_stats')
+      .order('execution_time', { ascending: false })
+      .limit(1)
+      .single();
+    
+    let macStatsObj = null;
+    if (macStats?.logs) {
+      try {
+        macStatsObj = JSON.parse(macStats.logs);
+      } catch (e) {
+        console.error('Failed to parse Mac stats:', e);
+      }
+    }
+    
     const now = Date.now();
     const hourAgo = now - 3600000;
     const recentLogs = (logs || []).filter(l => new Date(l.created_at).getTime() > hourAgo);
@@ -533,6 +551,11 @@ export async function fetchSystemHealth(): Promise<any> {
       completedToday: doneTasks,
       errors: errorCount,
       warnings: warnCount,
+      // Real Mac stats
+      macCpu: macStatsObj?.cpu || 'N/A',
+      macMemory: macStatsObj?.memory || 'N/A',
+      macDisk: macStatsObj?.disk || 'N/A',
+      macUptime: macStatsObj?.uptime || 'N/A',
     };
   } catch (e) {
     console.error('Exception fetching system health:', e);
