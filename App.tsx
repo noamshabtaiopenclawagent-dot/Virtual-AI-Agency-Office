@@ -1044,10 +1044,7 @@ const App: React.FC = () => {
               <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-right-10 duration-500">
                  <h2 className="text-white text-3xl font-bold mb-10">Automation Pulse (Cron) - {state.cronJobs?.length || 0} jobs</h2>
                  <div className="grid grid-cols-1 gap-6">
-                    {(state.cronJobs || []).length === 0 ? (
-                      <div className="text-zinc-500 p-8">Loading cron jobs...</div>
-                    ) : (
-                      state.cronJobs.map(job => (
+                    {state.cronJobs?.map(job => (
                       <div key={job.id} className="glass p-10 rounded-[2.5rem] border border-white/5 flex items-center justify-between group hover:border-blue-500/20 transition-all">
                          <div className="flex gap-8 items-center">
                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border
@@ -1072,7 +1069,6 @@ const App: React.FC = () => {
                          </div>
                       </div>
                     ))}
-                    )}
                  </div>
               </div>
            )}
