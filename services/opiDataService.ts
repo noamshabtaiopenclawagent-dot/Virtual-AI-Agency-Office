@@ -568,25 +568,47 @@ export async function fetchDailyCost(): Promise<{ total: string; breakdown: { mo
 
 export async function fetchCronJobs() {
   try {
+    // Get all executions and extract unique job names
     const { data, error } = await supabase
       .from('cron_executions')
-      .select('*')
-      .order('execution_time', { ascending: false })
-      .limit(20);
+      .select('job_name, status, execution_time')
+      .order('execution_time', { ascending: false });
     
     if (error) throw error;
     
-    return (data || []).map(job => ({
-      id: String(job.id),
-      name: job.job_name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      description: `Automated ${job.job_name} task`,
-      schedule: 'Daily',
-      lastRun: job.execution_time,
+    // Group by unique job names and get latest status
+    const jobMap = new Map();
+    (data || []).forEach(job => {
+      if (!jobMap.has(job.job_name)) {
+        jobMap.set(job.job_name, {
+          name: job.job_name,
+          status: job.status,
+          lastRun: job.execution_time
+        });
+      }
+    });
+    
+    // Map to UI format
+    const cronJobsMap: Record<string, string> = {
+      'heartbeat': '*/30 * * * *',
+      'eod-consolidate': '0 0 * * *',
+      'backup-runner': '0 3 * * *',
+      'security-audit-daily': '45 23 * * *',
+      'security-audit-weekly': '0 1 * * 0',
+      'health-watchdog': '*/15 * * * *'
+    };
+    
+    return Array.from(jobMap.values()).map(job => ({
+      id: job.name,
+      name: job.name.replace(/-/g, ' ').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      description: `Automated ${job.name} task`,
+      schedule: cronJobsMap[job.name] || 'Custom',
+      lastRun: job.lastRun,
       lastRunStatus: job.status?.toUpperCase() || 'UNKNOWN',
-      nextRun: calculateNextRun(job.job_name),
+      nextRun: calculateNextRun(job.name),
       successRate: job.status === 'success' ? 100 : 0,
       avgDuration: '2m',
-      status: job.status === 'active' ? 'ACTIVE' : 'PAUSED'
+      status: job.status === 'active' || job.status === 'success' ? 'ACTIVE' : 'PAUSED'
     }));
   } catch (e) {
     console.error('Error fetching cron jobs:', e);
