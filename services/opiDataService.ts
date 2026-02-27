@@ -250,12 +250,20 @@ export async function fetchOfficeGoals(): Promise<OfficeGoal[]> {
 
 export async function fetchOfficeMemories(): Promise<OfficeMemory[]> {
   try {
-    const { data, error } = await supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(50);
+    // Fetch from memories table (database)
+    const { data, error } = await supabase.from('memories').select('*').order('timestamp', { ascending: false }).limit(50);
     if (error) {
       console.error('Error fetching memories:', error);
       return [];
     }
-    return (data as OPINote[]).map(mapOPINoteToMemory);
+    return (data || []).map(m => ({
+      id: String(m.id),
+      agentId: String(m.agent_id || '1'),
+      content: m.content,
+      importance: m.importance || 3,
+      timestamp: m.timestamp ? new Date(m.timestamp).getTime() : Date.now(),
+      tags: m.tags || [],
+    }));
   } catch (e) {
     console.error('Exception fetching memories:', e);
     return [];
@@ -331,21 +339,22 @@ export function subscribeToAgents(callback: (payload: any) => void) {
 
 export async function fetchProposals(): Promise<OfficeProposal[]> {
   try {
-    const { data, error } = await supabase.from('decisions').select('*').order('created_at', { ascending: false }).limit(20);
+    // Fetch from proposals table (database)
+    const { data, error } = await supabase.from('proposals').select('*').order('created_at', { ascending: false }).limit(20);
     if (error) {
       console.error('Error fetching proposals:', error);
       return [];
     }
-    return (data || []).map(d => ({
-      id: String(d.id),
-      title: d.title,
-      proposer: d.created_by || 'OPI',
-      date: d.created_at ? new Date(d.created_at).toLocaleDateString('he-IL') : ' recently',
-      description: d.description || '',
+    return (data || []).map(p => ({
+      id: String(p.id),
+      title: p.title,
+      proposer: String(p.requested_by || 'OPI'),
+      date: p.created_at ? new Date(p.created_at).toLocaleDateString('he-IL') : ' recently',
+      description: p.description || '',
       impact: 'Medium',
       effort: 'Medium',
       agents: [],
-      status: d.status === 'approved' ? 'approved' : d.status === 'rejected' ? 'rejected' : 'pending',
+      status: p.status || 'pending',
     }));
   } catch (e) {
     console.error('Exception fetching proposals:', e);
@@ -355,21 +364,22 @@ export async function fetchProposals(): Promise<OfficeProposal[]> {
 
 export async function fetchResearch(): Promise<any[]> {
   try {
-    const { data, error } = await supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(20);
+    // Fetch from research table (database)
+    const { data, error } = await supabase.from('research').select('*').order('created_at', { ascending: false }).limit(20);
     if (error) {
       console.error('Error fetching research:', error);
       return [];
     }
-    return (data || []).map(n => ({
-      id: String(n.id),
-      title: n.title || 'Untitled',
-      summary: n.content?.slice(0, 200) || '',
-      agentId: '1',
-      timestamp: new Date(n.created_at).getTime(),
+    return (data || []).map(r => ({
+      id: String(r.id),
+      title: r.title || 'Untitled',
+      summary: r.content?.slice(0, 200) || '',
+      agentId: String(r.created_by || '1'),
+      timestamp: r.created_at ? new Date(r.created_at).getTime() : Date.now(),
       sources: [],
-      category: 'Internal',
+      category: r.category || 'Internal',
       importance: 3,
-      tags: n.tags || [],
+      tags: [],
     }));
   } catch (e) {
     console.error('Exception fetching research:', e);
@@ -467,48 +477,29 @@ export async function fetchArtifacts(): Promise<any[]> {
 // Fetch capabilities from agents (their tools/expertise)
 export async function fetchCapabilities(): Promise<any[]> {
   try {
-    const { data, error } = await supabase.from('agents').select('*');
+    // Fetch from capabilities table (database)
+    const { data, error } = await supabase.from('capabilities').select('*');
     if (error) {
       console.error('Error fetching capabilities:', error);
       return [];
     }
-    
-    const tools = [
-      { id: 'web-search', name: 'Web Search API', status: 'Active', type: 'External API', agents: ['RESEARCH'], usage: '~100 calls/day', icon: 'search' },
-      { id: 'code-exec', name: 'Code Execution', status: 'Active', type: 'Compute', agents: ['DEV'], usage: '~50/day', icon: 'code' },
-      { id: 'github', name: 'GitHub Integration', status: 'Active', type: 'Version Control', agents: ['DEV'], usage: 'Active', icon: 'git' },
-      { id: 'db-access', name: 'PostgreSQL Access', status: 'Active', type: 'Database', agents: ['DATA'], usage: 'Active', icon: 'database' },
-      { id: 'gemini', name: 'Gemini AI', status: 'Active', type: 'AI Model', agents: ['CEO', 'THINKER', 'DEV', 'DATA'], usage: 'Primary', icon: 'brain' },
-      { id: 'minimax', name: 'MiniMax AI', status: 'Active', type: 'AI Model', agents: ['RESEARCH'], usage: 'Secondary', icon: 'brain' },
-    ];
-    
-    return tools;
+    return data || [];
   } catch (e) {
     console.error('Exception fetching capabilities:', e);
     return [];
   }
 }
 
-// Fetch AI models from agent configs
+// Fetch AI models from database
 export async function fetchModels(): Promise<any[]> {
   try {
-    const { data, error } = await supabase.from('agents').select('id, name, role, config').not('config', 'is', null);
+    // Fetch from models table (database)
+    const { data, error } = await supabase.from('models').select('*');
     if (error) {
       console.error('Error fetching models:', error);
       return [];
     }
-    
-    return (data || []).map(agent => ({
-      id: String(agent.id),
-      name: agent.name,
-      role: agent.role,
-      model: agent.config?.preferred_model || 'Gemini',
-      maxTokens: agent.config?.max_tokens || 4096,
-      temperature: agent.config?.temperature || 0.5,
-      status: 'Active',
-      uptime: '99.9%',
-      callsToday: Math.floor(Math.random() * 500) + 100,
-    }));
+    return data || [];
   } catch (e) {
     console.error('Exception fetching models:', e);
     return [];

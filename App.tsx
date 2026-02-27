@@ -57,7 +57,7 @@ const App: React.FC = () => {
     agents: [],
     messages: [],
     tasks: [],
-    dailyCost: { total: "$'0.00", breakdown: [] },
+    dailyCost: { total: "$0.00", breakdown: [] },
     goals: [],
     memories: [],
     logs: [],
@@ -67,6 +67,8 @@ const App: React.FC = () => {
     research: [],
     securityIssues: [],
     marketData: [],
+    capabilities: [],
+    models: [],
     selectedAgentId: null,
     activeTab: 'Dashboard',
   });
@@ -250,6 +252,8 @@ const App: React.FC = () => {
           artifacts: artifacts,
           cronJobs: cronJobs,
           proposals: proposals,
+          capabilities: capabilities,
+          models: models,
           dailyCost: dailyCost || { total: "$0.00", breakdown: [] },
           systemHealth: systemHealth || { status: "UNKNOWN", uptime: "0", responseTime: "0", errorRate: "0", activeTasks: 0 },
         }));
@@ -1179,21 +1183,15 @@ const App: React.FC = () => {
                      </button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                     {[
-                        { id: 'web-search', name: 'Web Search API', status: 'Active', type: 'External API', agents: ['RESEARCHER', 'THINKER'], usage: '1,245 calls/day', icon: '🌐' },
-                        { id: 'code-exec', name: 'Secure Code Interpreter', status: 'Active', type: 'Compute', agents: ['DEV_LEAD', 'QA_TESTER'], usage: '342 executions/day', icon: '💻' },
-                        { id: 'github', name: 'GitHub Integration', status: 'Active', type: 'Version Control', agents: ['DEV_LEAD'], usage: '45 commits/day', icon: '🐙' },
-                        { id: 'db-access', name: 'PostgreSQL Access', status: 'Restricted', type: 'Database', agents: ['DATA_ANALYST'], usage: '8,900 queries/day', icon: '🗄️' },
-                        { id: 'slack', name: 'Slack Notifications', status: 'Active', type: 'Communication', agents: ['MANAGER'], usage: '12 msgs/day', icon: '💬' },
-                     ].map(tool => (
+                     {state.capabilities && state.capabilities.length > 0 ? state.capabilities.map((tool: any) => (
                         <div key={tool.id} className="glass p-8 rounded-3xl border border-white/5 hover:border-blue-500/30 transition-all group relative overflow-hidden">
-                           <div className="absolute top-0 right-0 p-6 opacity-10 text-6xl group-hover:scale-110 transition-transform">{tool.icon}</div>
+                           <div className="absolute top-0 right-0 p-6 opacity-10 text-6xl group-hover:scale-110 transition-transform">{tool.icon || '🔧'}</div>
                            <div className="flex justify-between items-start mb-6 relative z-10">
                               <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-xl border border-white/10">
-                                 {tool.icon}
+                                 {tool.icon || '🔧'}
                               </div>
                               <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border ${tool.status === 'Active' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
-                                 {tool.status}
+                                 {tool.status || 'Active'}
                               </span>
                            </div>
                            <h3 className="text-white font-bold text-xl mb-1 relative z-10">{tool.name}</h3>
@@ -1203,7 +1201,7 @@ const App: React.FC = () => {
                               <div>
                                  <div className="text-[9px] text-zinc-600 uppercase tracking-widest mb-2 font-bold">Authorized Agents</div>
                                  <div className="flex flex-wrap gap-2">
-                                    {tool.agents.map(agent => (
+                                    {(tool.agents || []).map((agent: string) => (
                                        <span key={agent} className="px-2 py-1 bg-white/5 rounded text-[10px] text-zinc-300 border border-white/5">
                                           {agent}
                                        </span>
@@ -1212,11 +1210,13 @@ const App: React.FC = () => {
                               </div>
                               <div className="pt-4 border-t border-white/5 flex justify-between items-center">
                                  <span className="text-[9px] text-zinc-600 uppercase tracking-widest font-bold">Usage</span>
-                                 <span className="text-xs text-blue-400 font-mono">{tool.usage}</span>
+                                 <span className="text-xs text-blue-400 font-mono">{tool.usage || 'N/A'}</span>
                               </div>
                            </div>
                         </div>
-                     ))}
+                     )) : (
+                        <div className="text-zinc-500">No capabilities found</div>
+                     )}
                   </div>
                </div>
             )}
@@ -1234,12 +1234,7 @@ const App: React.FC = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     {[
-                        { id: 'gemini-pro', name: 'Gemini 3.1 Pro', provider: 'Google', status: 'Active', latency: '450ms', tokens: '1.2M', cost: '$8.40', agents: ['DEV_LEAD', 'THINKER'], description: 'Heavy reasoning & complex coding tasks.' },
-                        { id: 'gemini-flash', name: 'Gemini 3 Flash', provider: 'Google', status: 'Active', latency: '120ms', tokens: '4.5M', cost: '$2.10', agents: ['RESEARCHER', 'DATA_ANALYST'], description: 'Fast execution & data processing.' },
-                        { id: 'claude-opus', name: 'Claude 3 Opus', provider: 'Anthropic', status: 'Standby', latency: '800ms', tokens: '50K', cost: '$1.50', agents: ['MANAGER'], description: 'Strategic planning & nuanced communication.' },
-                        { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', status: 'Active', latency: '350ms', tokens: '200K', cost: '$2.20', agents: ['QA_TESTER'], description: 'Code review & edge-case testing.' },
-                     ].map(model => (
+                     {(state.models || []).map((model: any) => (
                         <div key={model.id} className="glass p-8 rounded-3xl border border-white/5 hover:border-purple-500/30 transition-all group">
                            <div className="flex justify-between items-start mb-6">
                               <div>
@@ -1248,29 +1243,29 @@ const App: React.FC = () => {
                               </div>
                               <div className="flex flex-col items-end gap-2">
                                  <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border ${model.status === 'Active' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'}`}>
-                                    {model.status}
+                                    {model.status || 'Active'}
                                  </span>
-                                 <span className="text-[10px] font-mono text-zinc-600">{model.latency}</span>
+                                 <span className="text-[10px] font-mono text-zinc-600">{model.latency || 'N/A'}</span>
                               </div>
                            </div>
                            
-                           <p className="text-sm text-zinc-400 mb-8">{model.description}</p>
+                           <p className="text-sm text-zinc-400 mb-8">{model.description || 'No description'}</p>
                            
                            <div className="grid grid-cols-2 gap-4 mb-6">
                               <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
                                  <div className="text-[9px] text-zinc-600 uppercase tracking-widest mb-1 font-bold">Tokens Used (24h)</div>
-                                 <div className="text-lg font-mono text-white">{model.tokens}</div>
+                                 <div className="text-lg font-mono text-white">{model.tokens_24h || 'N/A'}</div>
                               </div>
                               <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
                                  <div className="text-[9px] text-zinc-600 uppercase tracking-widest mb-1 font-bold">Est. Cost (24h)</div>
-                                 <div className="text-lg font-mono text-green-400">{model.cost}</div>
+                                 <div className="text-lg font-mono text-green-400">{model.cost_24h || '$0.00'}</div>
                               </div>
                            </div>
                            
                            <div>
                               <div className="text-[9px] text-zinc-600 uppercase tracking-widest mb-3 font-bold">Routed Agents</div>
                               <div className="flex flex-wrap gap-2">
-                                 {model.agents.map(agent => (
+                                 {(model.agents || []).map((agent: string) => (
                                     <span key={agent} className="px-3 py-1.5 bg-purple-500/10 rounded-lg text-[10px] text-purple-300 border border-purple-500/20 font-bold">
                                        {agent}
                                     </span>

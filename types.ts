@@ -146,6 +146,9 @@ export interface OfficeState {
   proposals: Proposal[];
   research: ResearchEntry[];
   securityIssues: SecurityIssue[];
+  capabilities: any[];
+  models: any[];
+  marketData: any[];
   selectedAgentId: string | null;
   activeTab: 'Dashboard' | 'Tasks' | 'OrgTree' | 'Memory' | 'Artifacts' | 'Cron' | 'Physical' | 'Logs' | 'Capabilities' | 'Models' | 'Approvals' | 'SystemHealth' | 'Research' | 'Security';
 }
