@@ -591,7 +591,7 @@ export async function fetchDailyCost(): Promise<{ total: string; breakdown: { mo
 
 export async function fetchCronJobs() {
   try {
-    // Get all executions and extract unique job names
+    // Get all executions
     const { data, error } = await supabase
       .from('cron_executions')
       .select('job_name, status, execution_time')
@@ -599,17 +599,17 @@ export async function fetchCronJobs() {
     
     if (error) throw error;
     
-    // Group by unique job names and get latest status
-    const jobMap = new Map();
+    console.log('Cron raw data:', data?.length, 'rows');
+    
+    // Get unique job names - take first occurrence (most recent)
+    const uniqueJobs = new Map();
     (data || []).forEach(job => {
-      if (!jobMap.has(job.job_name)) {
-        jobMap.set(job.job_name, {
-          name: job.job_name,
-          status: job.status,
-          lastRun: job.execution_time
-        });
+      if (!uniqueJobs.has(job.job_name)) {
+        uniqueJobs.set(job.job_name, job);
       }
     });
+    
+    console.log('Unique jobs:', uniqueJobs.size);
     
     // Map to UI format
     const cronJobsMap: Record<string, string> = {
@@ -618,21 +618,26 @@ export async function fetchCronJobs() {
       'backup-runner': '0 3 * * *',
       'security-audit-daily': '45 23 * * *',
       'security-audit-weekly': '0 1 * * 0',
-      'health-watchdog': '*/15 * * * *'
+      'health-watchdog': '*/15 * * * *',
+      'system_stats': '*/15 * * * *'
     };
     
-    return Array.from(jobMap.values()).map(job => ({
-      id: job.name,
-      name: job.name.replace(/-/g, ' ').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      description: `Automated ${job.name} task`,
-      schedule: cronJobsMap[job.name] || 'Custom',
-      lastRun: job.lastRun,
+    const result = Array.from(uniqueJobs.values()).map(job => ({
+      id: job.job_name,
+      name: job.job_name.replace(/-/g, ' ').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      description: `Automated ${job.job_name} task`,
+      schedule: cronJobsMap[job.job_name] || 'Custom',
+      lastRun: job.execution_time,
       lastRunStatus: job.status?.toUpperCase() || 'UNKNOWN',
-      nextRun: calculateNextRun(job.name),
+      nextRun: calculateNextRun(job.job_name),
       successRate: job.status === 'success' ? 100 : 0,
       avgDuration: '2m',
-      status: job.status === 'active' || job.status === 'success' ? 'ACTIVE' : 'PAUSED'
+      status: job.status === 'active' || job.status === 'success' ? 'ACTIVE' : 'PAUSED',
+      interval: 3600
     }));
+    
+    console.log('Returning cron jobs:', result.length);
+    return result;
   } catch (e) {
     console.error('Error fetching cron jobs:', e);
     return [];
